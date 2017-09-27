@@ -23,6 +23,15 @@
 				CKEDITOR.ui.balloonPanel.prototype.build.call( this );
 				this.parts.title.remove();
 				this.parts.close.remove();
+				var output = [],
+					index = 0;
+				for ( var menuItem in this.menuItems ) {
+					this.menuItems[ menuItem ].render( this.menu, index++ , output );
+					//this.menuItems[ menuItem ].render( this.menu, output );
+
+					//console.log( output );
+				}
+				this.parts.content.setHtml( output.join( '' ) );
 			};
 
 			CKEDITOR.ui.inlineToolbar.prototype._getAlignments = function( elementRect, panelWidth, panelHeight ) {
@@ -45,9 +54,11 @@
 					this.listeners.scrollEvent.removeListener();
 					this.listeners = null;
 				}
+				this.menuItems = [];
 			};
 
 			CKEDITOR.ui.inlineToolbar.prototype.create = function( element ) {
+				this.build();
 				this.attach( element );
 
 				var that = this,
@@ -79,12 +90,57 @@
 				this.hide();
 			};
 
+			/**
+		 * Adds an item from the specified definition to the editor context menu.
+		 *
+		 * @method
+		 * @param {String} name The menu item name.
+		 * @param {Object} definition The menu item definition.
+		 * @member CKEDITOR.editor
+		 */
+		CKEDITOR.ui.inlineToolbar.prototype.addMenuItem = function( name, definition ) {
+			this.menuItems[ name ] = new CKEDITOR.menuItem( this.editor, name, definition );
+			//this.menuItems[ name ] = new CKEDITOR.ui.menuButton( definition );
+		};
+
+		/**
+		 * Adds one or more items from the specified definition object to the editor context menu.
+		 *
+		 * @method
+		 * @param {Object} definitions Object where keys are used as itemName and corresponding values as definition for a {@link #addMenuItem} call.
+		 * @member CKEDITOR.editor
+		 */
+		CKEDITOR.ui.inlineToolbar.prototype.addMenuItems = function( definitions ) {
+			for ( var itemName in definitions ) {
+				this.addMenuItem( itemName, definitions[ itemName ] );
+			}
+		};
+
+		/**
+		 * Retrieves a particular menu item definition from the editor context menu.
+		 *
+		 * @method
+		 * @param {String} name The name of the desired menu item.
+		 * @returns {Object}
+		 * @member CKEDITOR.editor
+		 */
+		CKEDITOR.ui.inlineToolbar.prototype.getMenuItem = function( name ) {
+			return this.menuItems[ name ];
+		};
+
 				/////TEMPORARY CODE ///////
 			editor.addCommand( 'testInlineToolbar', {
 				exec: function( editor ) {
 					var img = editor.editable().findOne( 'img' );
 					if ( img ) {
 						var panel = new CKEDITOR.ui.inlineToolbar( editor );
+						panel.addMenuItems({
+							image: {
+								label: editor.lang.image.menu,
+								command: 'image',
+								group: 'image'
+							}
+						});
 						panel.create( img );
 					}
 				}
@@ -104,6 +160,9 @@
 			triangleHeight: 10
 		} );
 		CKEDITOR.ui.balloonPanel.call( this, editor, defParams );
+		this.menuItems = [];
+		this.menu = new CKEDITOR.menu();
+
 	};
 
 }() );
