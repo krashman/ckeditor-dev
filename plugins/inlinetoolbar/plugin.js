@@ -6,10 +6,19 @@
 ( function() {
 	'use strict';
 
+
+	var stylesLoaded = false;
+
 	CKEDITOR.plugins.add( 'inlinetoolbar', {
 		requires: 'balloonpanel',
 		init: function( editor ) {
+			if ( !stylesLoaded ) {
+				CKEDITOR.document.appendStyleSheet( this.path + 'skins/' + CKEDITOR.skinName + '/inlinetoolbar.css' );
+				stylesLoaded = true;
+			}
+
 			CKEDITOR.ui.inlineToolbar.prototype = Object.create( CKEDITOR.ui.balloonPanel.prototype );
+			CKEDITOR.ui.inlineToolbar.prototype.templateDefinitions.panel = CKEDITOR.ui.inlineToolbar.prototype.templateDefinitions.panel.replace( 'cke_balloon', 'cke_inlinetoolbar' );
 			CKEDITOR.ui.inlineToolbar.prototype.build = function() {
 				CKEDITOR.ui.balloonPanel.prototype.build.call( this );
 				this.parts.title.remove();
@@ -89,7 +98,12 @@
 	} );
 
 	CKEDITOR.ui.inlineToolbar = function( editor, definition ) {
-		CKEDITOR.ui.balloonPanel.call( this, editor, definition );
+		var defParams = CKEDITOR.tools.extend( definition || {}, {
+			width: 'auto',
+			triangleWidth: 10,
+			triangleHeight: 10
+		} );
+		CKEDITOR.ui.balloonPanel.call( this, editor, defParams );
 	};
 
 }() );
